@@ -1,22 +1,3 @@
-
-// A VkPipelineCache kept on disk (<data root>/pipelines_<vendor>_<device>.bin), and the cost of what the replay
-// creates on the fly. Pipelines are compiled the first time a draw needs them, inside the replay: the course's
-// stutters when new objects come in (16-42 ms replays on the RTX 3050). The driver checks the cache header itself
-// (vendor, device, driver build): a stale file is ignored. Saved every 600 presents when it grew.
-// NX_PIPELINE_CACHE=0: no cache (bisecting, or to measure first-run stutter).
-#include <cstdio>
-#include <cstdlib>
-#include <vector>
-
-#include <atomic>
-#include <mutex>
-#include <thread>
-#include <unordered_set>
-
-#include "nvn_pipeline.h"
-#include "nvn_vk.h"
-#include "platform.h"
-
 namespace nx::nvn {
 
 using namespace nx::vk;
@@ -203,7 +184,8 @@ void warm_record(const PipelineKey& k) {
     }
 }
 
-// Definition is now in the same anonymous namespace as its declaration above.
+namespace {
+
 void warm_save() {
     std::vector<WarmRec> recs;
     {
@@ -230,6 +212,8 @@ void warm_save() {
         std::fclose(f);
     }
 }
+
+}  // namespace
 
 void note_pipeline_alias() { g_alias++; }
 void note_module_created(uint64_t ns) { g_modules++, g_module_ns += ns; }
